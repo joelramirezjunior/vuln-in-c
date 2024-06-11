@@ -1,11 +1,13 @@
 import pandas as pd
 from sklearn.preprocessing import OneHotEncoder
+from sklearn.feature_extraction.text import CountVectorizer
 from keras.models import Sequential
 from keras.layers import Embedding, LSTM, Dense
-from keras.preprocessing.text import Tokenizer
+# from keras.preprocessing.text import Tokenizer
 from keras.preprocessing.sequence import pad_sequences
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LogisticRegression 
 
 def load_and_inspect_data(file_path):
     """
@@ -13,8 +15,8 @@ def load_and_inspect_data(file_path):
     Note: We return a Pandas Dataframe.
     """
     dataset = pd.read_csv(file_path)
-    print(dataset.info())
-    print(dataset.head())
+    # print(dataset.info()) 1 2 3 ayyyy
+    # print(dataset.head(1))
     return dataset
 
 def clean_data(dataset):
@@ -22,8 +24,59 @@ def clean_data(dataset):
     Perform data cleaning, including removing duplicates and handling missing values.
     """
     print("Cleaning the data!")    
-    dataset_cleaned = dataset.dropna().drop_duplicates()
+    dataset_cleaned = dataset.drop_duplicates()
     return dataset_cleaned
+
+def make_bow_represenations(dataset): 
+    '''
+    "the man at the burrito" ->  ['the', 'man', 'ate', 'the', 'burrito']
+
+      'the',  -> [1,0,0,0]
+      'man',  -> [0,1,0,0]    
+      'ate',  -> [0,0,1,0]
+      'the',  -> [1,0,0,0]
+      'burrito'-> [0,0,0,1]
+    
+     "the man at the burrito" -> [2,1,1,1]
+     "man at the burrito the" -> 
+     "at the man the burrito" -> 
+     Word order is lost and so it 
+
+     
+     85,000 words in my vocab
+
+     if(X == three) reutrn X
+
+     if X three return X
+    
+     by a 85,000 long vector with only 4 non zero values
+     '''
+    vectorize = CountVectorizer(max_features = 1000)
+
+    just_coding_col= dataset["Source code"]
+    X = vectorize.fit(just_coding_col) #we only use the top 1000 most used tokens
+    #why would we want to decrease the number of tokens we look at? 
+    print(X.vocabulary_)
+    X = vectorize.transform(just_coding_col)
+    np.save("bow_array", X.toarray())
+    
+    X_bow =  np.load("bow_array.npy")
+    y_bow =  np.load("y.npy")
+
+    return X_bow, y_bow
+    #we have the features loaded up! "The code part" 
+
+    #We also need one more thing to finaly train a model.
+    '''
+    X -> Code
+    y -> What is Vulnerable and what isn't?
+    '''
+
+    # dataset["y"] = np.where(dataset['Vulnerability type'] == "NOT VULNERABLE up to bound k", 0, 1)
+
+    # # Print the new column to check
+    # #The amount of code with vulnerabilities? 
+    # np.save("y", dataset["y"])
 
 def preprocess_data(dataset):
     """
@@ -32,7 +85,13 @@ def preprocess_data(dataset):
     Examples: 
     "The man ate the burrito" -> ['the', 'man', 'ate', 'the', 'burrito']
     ['the', 'man', 'ate', 'the', 'burrito'] -> Embedding Space ([100, 101, 102, 101, 1]) 
-    ([100, 101, 102, 101, 1]) ->
+
+    Each word maps to a unique vector of numebrs! 
+
+
+    
+    #one hot encodings! 
+    ['the', 'man', 'ate', 'the', 'burrito'] ->
     [
         [
             [1,0,0,0],
@@ -44,6 +103,7 @@ def preprocess_data(dataset):
     ]
     Vocabulary: 4, the man ate burrito
     """
+
     print("Tokenizing the data!")    
     tokenizer = Tokenizer(num_words=10000)
     tokenizer.fit_on_texts(dataset['Source code']) #update the vocabulary of the vectorizer! 
@@ -121,13 +181,22 @@ def main():
     """
     Main function to execute the steps.
 
-    CSV LOOKS LIKE THIS: Filename,Vulnerability type,Source code,Function name,Line,Error type
+    CSV LOOKS LIKE THIS: Filename, Vulnerability type, Source code, Function name, Line, Error type
     """
-    file_path = 'FormAI_dataset.csv'
-    dataset = load_and_inspect_data(file_path)
-    dataset_cleaned = clean_data(dataset)
-    dataset_preprocessed, tokenizer, _max_length = preprocess_data(dataset_cleaned)
 
+    file_path = 'FormAI_dataset.csv'
+    dataset = load_and_inspect_data(file_path) #we have loaded the dataset! 
+    dataset_cleaned = clean_data(dataset)
+    X, y = make_bow_represenations(dataset_cleaned)
+    X_train, X_test, y_train, y_test = train_test_split(X, y)
+    model = LogisticRegression()
+    model.fit(X_train, y_train)
+    print(model.score(X_test, y_test))
+
+    #we sorta went crazy we went straight to the "best case" solution
+    #Embeddings and RNNs as well. 
+    # dataset_preprocessed, tokenizer, _max_length = preprocess_data(dataset_cleaned)
+    return 
     model = build_model(tokenizer, max_length=_max_length, output_dim=len(dataset_preprocessed.iloc[0]['label_OHE']))
     train_and_evaluate_model(model, dataset_preprocessed)
 
