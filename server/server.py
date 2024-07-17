@@ -36,7 +36,7 @@ def check_vulnerability(code, model):
     vectorizer = load_model(vectorize_file)
 
     _vector_code = vectorizer.transform([code]).toarray()
-    pred = model.predict(_vector_code)
+    pred = model.predict(_vector_code, verbose = 0)
     print(pred)
 
     return "yolo"

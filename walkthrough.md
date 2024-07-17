@@ -77,3 +77,55 @@ Orchestrates the execution of all steps in the pipeline when the script is run d
 ### How It Works:
 - Sequentially calls the functions defined above, passing the necessary data between them.
 - Begins with loading and cleaning the data
+
+
+
+
+
+
+# How did we find the line? 
+
+### Our Model
+
+So, our model in general is able to tell us whether or not a code file has a vulnerability present! It just says, "yes you do!" or "No you dont!". Ok, it would be too difficult (too much computation resources) to then train another model to tell us which lines are the issue. 
+
+
+Well, the model should already "have" an understanding of "which code" is problematic if it already has the ability to tell us if the file is vulnerable or not. 
+
+
+### Our Solution
+We removed each each line, one by one, and then re-asked the model if it thought there was still a vulnerability. 
+
+If the model changed it's mind or had a large "difference" in confidance just by removing the line, then we knew that this was a super important line for the prediction. 
+
+### Overfitting Issues
+
+By doing this, we found something troubling. The model always thought that the first line was the most important. We saw that the first line was always a comment (e.g. "//FormAI DATASET v1.0 Category: Network Topology Mapper ; Style: multi-threaded"). So the model started to associate "vulnerability" with these comments. Once, we removed this line from a test-file, the model correctly showed us that this line: 25 (scanf(""%s"", user);) had the possibility of being buffer overflowed. 
+
+Also, we found that silly comments also gravely influence the models ability to make predictions. So we will be removing All comments from code and will retrain all models!
+
+# WebApp Features 
+
+### Display the Text File in a nice IDE. 
+
+### Displaying Vulnerable Lines
+
+Tell the user which line is the most indicative of the error and we can also highlight it in the Text File we render ABOVE! 
+
+We use a sliding scale highlight, showing the user which lines are the most important just in case there's more than one. 
+
+## What if we fix the code for them...or we suggest a possible solution. And this doesn't have to be AI!
+
+"Ok, we detect that the issue comes from the "strcspn" function, a common fix would be to do ......" 
+
+
+
+
+
+
+
+
+
+
+
+

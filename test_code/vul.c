@@ -18,12 +18,11 @@ int main() {
     };
 
     // Prompt user for their username and password
-    char user[50]; //YOU CAN ONLY MAKE A USERNAME 50 SYMBOLS LONG
+    char user[50];
     char pass[50];
     printf(""Welcome to the Cyber Database. Please enter your credentials to proceed:\n"");
     printf(""Username: ""); 
-    scanf(""%s"", user);  //IS US ASKING THE USER TO INPUT THEIR USERNAME WITH NO LIKE PROTECTION lajsdflkajdlfjaslkdfjlkasjdflkasjdflkjsadlfjasdlkfjasldkfjl;kdjflkdjfkldjflkasjdfkljdlfjlskdfjldjflkasjdflkjdflkjdfljdflkjdlfjdlfjdosomethingeveil() alsdjflajdflajdlfjasldkfjlaskdjflkasdjflkajdflkj
-    printf(""Password: "");
+    scanf(""%s"", user); 
     scanf(""%s"", pass);
     printf(""\n"");
 
